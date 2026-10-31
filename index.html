@@ -175,23 +175,23 @@
     </div>
 
     <script>
-        // Data Siswa Kelas 9H (Telah Diperbarui dengan Daftar Baru)
+        // Data Siswa Kelas 9H (Diurutkan sesuai yang diminta Spreadsheet)
         const studentList = [
             "Akmalu Rifky", "Aldian Putra Ramadhan", "Alona Syafa Nafisa", "Alqi Pratama", "Anugrah Bima Nugroho",
             "Asna Fauziyah Ulayya", "Azka Ardiana Putra", "Defan Ariyanto", "Dhina Mitra", "Diah Puspitarini",
-             "Dziky Fajar Nurfaizi", "Evita Putri Anggraeni", "Fatfah Safingatun Aulia", "Galih Marcelino Ramadhan", "Hafeza Dwi Faik Kabisa",
-            "Indah Salsabila", "Janah Idha Pratiwi", "Jauzaa Hadi Nurrudin", "Jova Hakiki", "Meyzha Miryanti",
+            "Dziky Fajar Nurfaizi", "Evita Putri Anggraeni", "Fatfah Safingatun Aulia", "Galih Marcelino Ramadhan", "Hafeza Dwi Faik Kabisa",
+            "Hafiz Maulana Arrasyid", "Indah Salsabila", "Janah Idha Pratiwi", "Jauzaa Hadi Nurrudin", "Jova Hakiki", "Meyzha Miryanti",
             "Muhamad Ajib Fathurrohman", "Nada Nazhifah Sugianto", "Naila Aprilia Safitri", "Nauval Arif Pratama", "Panji Laksono",
             "Rafa Alkhafizi", "Rafa Dilis Asyakrulloh", "Rafli Andreano", "Raka Dilis Asyakrulloh", "Resmi Fajriani",
-           "Ricky Indra Aditya", "Riska Ayu Setyawati", "Rizki 'Ainurrohman", "Trias Nur Febriansah", "Velisa",
-            "Zakiya Zain",
+            "Ricky Indra Aditya", "Riska Ayu Setyawati", "Rizki 'Ainurrohman", "Trias Nur Febriansah", "Velisa",
+            "Zakiya Zain"
         ];
 
         // Konfigurasi Penyimpanan Lokal
-        const STORAGE_KEY = 'absensi_9f_data';
-        const EXPIRE_TIME = 12 * 60 * 60 * 1000; // 12 Jam dalam milidetik
+        const STORAGE_KEY = 'absensi_9h_data';
+        const EXPIRE_TIME = 12 * 60 * 60 * 1000; // 12 Jam
 
-        // INI ADALAH URL DARI GOOGLE APPS SCRIPT ANDA
+        // PASTIKAN ANDA MENGGANTI URL DI BAWAH DENGAN URL DEPLOYMENT APPS SCRIPT ANDA
         const scriptURL = "https://script.google.com/macros/s/AKfycbzH0dZ0xIhj_ErwwHsmFrtjG8xC2WqYjTs25OiCmF1CTbIVDkjlXqVK-As769ciA5P6/exec";
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -199,56 +199,37 @@
             document.getElementById('live-count-empty').textContent = studentList.length;
             initClock();
             renderStudentGrid();
-            
-            // Cek apakah ada data tersimpan yang masih valid (kurang dari 12 jam)
             loadFromLocalStorage();
             updateLiveRekap(); 
-
             setupEventListeners();
         });
 
-        // Fungsi untuk menyimpan state form ke local storage
         function saveToLocalStorage() {
             const formState = new FormData(document.getElementById('absensi-form'));
             const dataObj = {};
             studentList.forEach(student => {
                 const status = formState.get(student);
-                if (status) {
-                    dataObj[student] = status;
-                }
+                if (status) dataObj[student] = status;
             });
-            
-            const storageData = {
-                timestamp: Date.now(),
-                data: dataObj
-            };
+            const storageData = { timestamp: Date.now(), data: dataObj };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(storageData));
         }
 
-        // Fungsi untuk memuat data dari local storage
         function loadFromLocalStorage() {
             const storedString = localStorage.getItem(STORAGE_KEY);
             if (storedString) {
                 try {
                     const storedData = JSON.parse(storedString);
-                    const now = Date.now();
-                    
-                    // Cek durasi kedaluwarsa (12 jam)
-                    if (now - storedData.timestamp < EXPIRE_TIME) {
+                    if (Date.now() - storedData.timestamp < EXPIRE_TIME) {
                         for (const student in storedData.data) {
                             const val = storedData.data[student];
-                            // Memilih input radio yang sesuai
                             const radio = document.querySelector(`input[name="${student}"][value="${val}"]`);
-                            if (radio) {
-                                radio.checked = true;
-                            }
+                            if (radio) radio.checked = true;
                         }
                     } else {
-                        // Jika sudah lebih dari 12 jam, hapus data lama
                         localStorage.removeItem(STORAGE_KEY);
                     }
                 } catch (e) {
-                    console.error("Gagal memuat penyimpanan lokal", e);
                     localStorage.removeItem(STORAGE_KEY);
                 }
             }
@@ -261,7 +242,6 @@
                 const now = new Date();
                 const optionsDate = { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' };
                 dateEl.textContent = now.toLocaleDateString('id-ID', optionsDate);
-                
                 const hours = String(now.getHours()).padStart(2, '0');
                 const minutes = String(now.getMinutes()).padStart(2, '0');
                 timeEl.textContent = `${hours}:${minutes}`;
@@ -278,7 +258,6 @@
                 const safeId = `student_${index}`;
                 const card = document.createElement('div');
                 card.className = "bg-white rounded-xl shadow-sm border border-gray-200 p-3 flex flex-col justify-between";
-                
                 card.innerHTML = `
                     <div class="flex items-center mb-3">
                         <div class="w-7 h-7 rounded-full bg-nuGreen-100 text-nuGreen-700 flex items-center justify-center font-bold text-xs mr-3 shrink-0">
@@ -309,7 +288,6 @@
             });
         }
 
-        // Dipisah agar bisa dipanggil darimana saja
         function updateLiveRekap() {
             const form = document.getElementById('absensi-form');
             const formState = new FormData(form);
@@ -324,8 +302,7 @@
             });
 
             const totalFilled = countH + countS + countI + countA;
-            const totalStudents = studentList.length;
-            const emptyCount = totalStudents - totalFilled;
+            const emptyCount = studentList.length - totalFilled;
 
             document.getElementById('live-count-h').textContent = countH;
             document.getElementById('live-count-s').textContent = countS;
@@ -335,11 +312,9 @@
             const emptyEl = document.getElementById('live-count-empty');
             emptyEl.textContent = emptyCount;
             if(emptyCount === 0) {
-                emptyEl.classList.remove('text-red-500');
-                emptyEl.classList.add('text-green-600');
+                emptyEl.classList.replace('text-red-500', 'text-green-600');
             } else {
-                emptyEl.classList.add('text-red-500');
-                emptyEl.classList.remove('text-green-600');
+                emptyEl.classList.replace('text-green-600', 'text-red-500');
             }
         }
 
@@ -351,7 +326,6 @@
             const confirmModal = document.getElementById('confirm-modal');
             const confirmModalBox = document.getElementById('confirm-modal-box');
             
-            // Simpan setiap kali ada perubahan data (klik radio button)
             form.addEventListener('change', () => {
                 updateLiveRekap();
                 saveToLocalStorage();
@@ -361,7 +335,7 @@
                 e.preventDefault(); 
                 document.querySelectorAll('input[type="radio"][value="H"]').forEach(radio => radio.checked = true);
                 updateLiveRekap();
-                saveToLocalStorage(); // Simpan efek hadir semua ke local storage
+                saveToLocalStorage();
                 btnHadirSemua.classList.add('bg-nuGreen-700');
                 setTimeout(() => btnHadirSemua.classList.remove('bg-nuGreen-700'), 200);
             });
@@ -382,7 +356,7 @@
             document.getElementById('btn-cancel-reset').addEventListener('click', closeModal);
             document.getElementById('btn-confirm-reset').addEventListener('click', () => {
                 form.reset();
-                localStorage.removeItem(STORAGE_KEY); // Hapus memori lokal jika di reset
+                localStorage.removeItem(STORAGE_KEY);
                 updateLiveRekap();
                 closeModal();
             });
@@ -390,8 +364,8 @@
             form.addEventListener('submit', e => {
                 e.preventDefault();
                 
-                if (scriptURL === 'MASUKKAN_URL_GOOGLE_SCRIPT_ANDA_DISINI') {
-                    showError("URL Web App belum disetel di kode HTML. Silakan ganti MASUKKAN_URL_GOOGLE_SCRIPT_ANDA_DISINI dengan URL Google Script Anda.");
+                if (scriptURL === 'MASUKKAN_URL_WEB_APP_DISINI' || scriptURL === '') {
+                    showError("URL Web App Google Script belum disetel di kode HTML.");
                     return;
                 }
 
@@ -399,15 +373,9 @@
                 const dataObj = {};
                 
                 const now = new Date();
-                const year = now.getFullYear();
-                const month = String(now.getMonth() + 1).padStart(2, '0');
-                const day = String(now.getDate()).padStart(2, '0');
-                const hours = String(now.getHours()).padStart(2, '0');
-                const minutes = String(now.getMinutes()).padStart(2, '0');
-                const seconds = String(now.getSeconds()).padStart(2, '0');
-
-                dataObj['Tanggal'] = `${year}-${month}-${day}`;
-                dataObj['Waktu'] = `${hours}:${minutes}:${seconds}`;
+                // Format YYYY-MM-DD
+                dataObj['Tanggal'] = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                dataObj['Waktu'] = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
 
                 let allFilled = true;
                 studentList.forEach((student) => {
@@ -423,24 +391,21 @@
 
                 loader.classList.remove('hidden');
 
+                // Mengirim sebagai Plain Text murni (JSON ditext-kan) agar melewati masalah No-CORS Browser
                 fetch(scriptURL, { 
-                    method: 'POST', 
-                    mode: 'no-cors', 
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(dataObj) 
+                    method: 'POST',
+                    body: JSON.stringify(dataObj)
                 })
-                .then(() => {
+                .then(response => response.json())
+                .then(result => {
                     loader.classList.add('hidden');
-                    showToast();
-                    
-                    // Note: Kami MENIADAKAN form.reset() di sini.
-                    // Dengan begitu, isian tetap tampil dan tidak hilang setelah dikirim
-                    // Kami hanya mereset perhitungan timer 12 jamnya saja (dengan saveToLocalStorage).
-                    saveToLocalStorage(); 
-                    
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    if(result.result === 'success') {
+                        showToast();
+                        saveToLocalStorage(); 
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    } else {
+                        showError(result.message || 'Gagal tersimpan di Spreadsheet.');
+                    }
                 })
                 .catch(error => {
                     loader.classList.add('hidden');
